@@ -1,161 +1,150 @@
-<!-- 
-COPY THIS ENTIRE HTML AND PASTE IT IN YOUR EMAILJS TEMPLATE
-Go to: https://dashboard.emailjs.com/admin/templates/template_eh5mdow
--->
-
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #ffffff;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 3px solid #1976D2;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-        .logo-container {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .logo {
-            max-width: 180px;
-            height: auto;
-            display: inline-block;
-        }
-        .college-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1976D2;
-            margin: 10px 0 5px 0;
-        }
-        .tagline {
-            font-style: italic;
-            color: #666;
-            font-size: 14px;
-        }
-        .content {
-            padding: 20px 0;
-        }
-        .greeting {
-            font-size: 18px;
-            margin-bottom: 15px;
-        }
-        .event-details {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #1976D2;
-        }
-        .event-details p {
-            margin: 8px 0;
-        }
-        .qr-container {
-            text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background: #f9fafb;
-            border-radius: 8px;
-        }
-        .qr-container h3 {
-            color: #1976D2;
-            margin-bottom: 15px;
-        }
-        .qr-code {
-            max-width: 250px;
-            border: 3px solid #1976D2;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            display: inline-block;
-        }
-        .instructions {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
-            color: #666;
-            font-size: 13px;
-        }
-        .footer p {
-            margin: 5px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Header with Logo -->
-        <div class="header">
-            <div class="logo-container">
-                <!-- LOGO WILL APPEAR HERE -->
-                <img src="{{college_logo}}" alt="CMR Technical Campus" class="logo">
-            </div>
-            <div class="college-name">{{college_name}}</div>
-            <div class="tagline">{{college_tagline}}</div>
-        </div>
-        
-        <!-- Main Content -->
-        <div class="content">
-            <div class="greeting">
-                <p>Dear <strong>{{name}}</strong>,</p>
-            </div>
-            
-            <p>Your registration has been confirmed successfully! 🎉</p>
-            
-            <div class="event-details">
-                <h3 style="margin-top: 0; color: #1976D2;">📋 Registration Details</h3>
-                <p><strong>Student ID:</strong> {{id}}</p>
-                <p><strong>Email:</strong> {{email}}</p>
-                <p><strong>Event:</strong> {{event_name}}</p>
-                <p><strong>Venue:</strong> {{event_venue}}</p>
-                <p><strong>Date & Time:</strong> {{event_date}}</p>
-            </div>
-            
-            <!-- QR Code Section -->
-            <div class="qr-container">
-                <h3>🎫 Your Event Pass QR Code</h3>
-                <img src="{{qr_code}}" alt="QR Code" class="qr-code">
-            </div>
-            
-            <div class="instructions">
-                <strong>⚠️ Important Instructions:</strong>
-                <ul style="margin: 10px 0; padding-left: 20px;">
-                    <li>Save this email or take a screenshot of the QR code</li>
-                    <li>Show this QR code at the event entrance for scanning</li>
-                    <li>Arrive 15 minutes before the event starts</li>
-                    <li>Carry your Student ID card</li>
-                </ul>
-            </div>
-        </div>
-        
-        <!-- Footer -->
-        <div class="footer">
-            <p><strong>CMR Technical Campus</strong></p>
-            <p style="font-style: italic;">Explore to Invent</p>
-            <p style="margin-top: 15px;">This is an automated email. Please do not reply.</p>
-            <p>For queries, contact: events@cmrtc.ac.in</p>
-        </div>
-    </div>
+<body style="margin:0;padding:0;background:#f4f6f9;font-family:Arial,Helvetica,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f9;padding:15px 0;">
+<tr>
+<td align="center">
+
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:6px;overflow:hidden;">
+
+<!-- HEADER -->
+<tr>
+<td align="center" style="background:#1a237e;padding:30px 20px;color:#ffffff;">
+
+<img src="https://raw.githubusercontent.com/buggetb4u/CMSCT/main/cmrtc.png" width="90" style="display:block;background:#ffffff;padding:8px;border-radius:50%;margin-bottom:15px;">
+
+<h2 style="margin:10px 0 5px 0;font-size:22px;">CMR TECHNICAL CAMPUS</h2>
+<p style="margin:0;font-size:13px;color:#ffcccb;">UGC Autonomous</p>
+<p style="margin:3px 0 0 0;font-size:12px;color:#90ee90;">NBA & NAAC 'A' Grade Accredited</p>
+
+</td>
+</tr>
+
+<!-- SUCCESS BAR -->
+<tr>
+<td align="center" style="background:#4CAF50;color:#ffffff;padding:15px;font-size:16px;font-weight:bold;">
+Registration Confirmed Successfully
+</td>
+</tr>
+
+<!-- BODY -->
+<tr>
+<td style="padding:25px;">
+
+<p style="font-size:16px;color:#1a237e;margin-bottom:15px;">
+Dear <strong style="color:#d32f2f;">{{name}}</strong>,
+</p>
+
+<p style="font-size:14px;color:#333;line-height:1.6;margin-bottom:20px;">
+Your registration has been successfully confirmed. Please find your event details and QR pass below. Keep this email safe for entry.
+</p>
+
+<!-- DETAILS TABLE -->
+<table width="100%" cellpadding="8" cellspacing="0" border="0" style="border:1px solid #e0e0e0;border-radius:5px;margin-bottom:25px;">
+
+<tr style="background:#f5f7fa;">
+<td colspan="2" style="font-weight:bold;color:#1a237e;font-size:16px;padding:12px;">
+Registration Details
+</td>
+</tr>
+
+<tr>
+<td width="40%" style="font-weight:bold;color:#1a237e;">Student Name</td>
+<td>{{name}}</td>
+</tr>
+
+<tr>
+<td style="font-weight:bold;color:#1a237e;">Student ID</td>
+<td>{{id}}</td>
+</tr>
+
+<tr>
+<td style="font-weight:bold;color:#1a237e;">Email</td>
+<td>{{email}}</td>
+</tr>
+
+<tr>
+<td style="font-weight:bold;color:#1a237e;">Event Name</td>
+<td>{{event_name}}</td>
+</tr>
+
+<tr>
+<td style="font-weight:bold;color:#1a237e;">Venue</td>
+<td>{{event_venue}}</td>
+</tr>
+
+<tr>
+<td style="font-weight:bold;color:#1a237e;">Date & Time</td>
+<td>{{event_date}}</td>
+</tr>
+
+</table>
+
+<!-- QR SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align:center;background:#fff8e1;border:1px dashed #ff9800;padding:20px;margin-bottom:25px;">
+<tr>
+<td>
+<h3 style="margin:0 0 10px 0;color:#1a237e;">Your Digital Event Pass</h3>
+
+<img src="{{qr_code}}" width="200" style="display:block;margin:15px auto;border:3px solid #1a237e;border-radius:6px;">
+
+<p style="font-size:13px;color:#555;">
+Save this QR code or take a screenshot for quick access.
+</p>
+</td>
+</tr>
+</table>
+
+<!-- INSTRUCTIONS -->
+<table width="100%" cellpadding="8" cellspacing="0" border="0" style="background:#fff3cd;border-left:5px solid #ff9800;margin-bottom:25px;">
+<tr>
+<td style="font-size:14px;">
+<strong>Important Instructions:</strong>
+<ul style="margin:10px 0 0 20px;padding:0;">
+<li>Arrive 15 minutes early</li>
+<li>Carry your student ID card</li>
+<li>Show QR code at entry</li>
+<li>Keep phone charged</li>
+<li>QR code is single-use only</li>
+</ul>
+</td>
+</tr>
+</table>
+
+<p style="font-size:14px;color:#333;margin-bottom:20px;">
+We look forward to seeing you at the event.
+</p>
+
+<p style="font-size:13px;color:#666;">
+Regards,<br>
+Event Management Team
+</p>
+
+</td>
+</tr>
+
+<!-- FOOTER -->
+<tr>
+<td align="center" style="background:#1a237e;color:#ffffff;padding:20px;font-size:12px;">
+
+<p style="margin:5px 0;">CMR Technical Campus</p>
+<p style="margin:5px 0;">Kandlakoya, Medchal Road, Hyderabad – 501401</p>
+<p style="margin:5px 0;">Phone: +91 92470 33440/41</p>
+<p style="margin:5px 0;">Email: info@cmrtc.ac.in</p>
+
+<p style="margin-top:15px;color:#bbbbbb;">
+This is an automated email. Do not reply.
+</p>
+
+</td>
+</tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
 </body>
 </html>

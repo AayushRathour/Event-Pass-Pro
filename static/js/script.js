@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize EmailJS with your Public Key (wait for EmailJS to load)
     if (typeof emailjs !== 'undefined') {
-        emailjs.init("LW8AvJdD_7yUt0D9M");
+        emailjs.init("JHhm43qp3TdCvU87O");
         console.log("✅ EmailJS initialized");
     } else {
         console.error("❌ EmailJS library not loaded");
@@ -277,31 +277,34 @@ document.getElementById("gatePassForm").addEventListener("submit", async functio
                 const eventData = await eventResponse.json();
                 
                 // CMR Technical Campus Logo - Using a working public URL
-                // IMPORTANT: Replace this with your actual uploaded CMR logo URL from imgbb.com or imgur.com
-                const collegeLogoUrl = 'https://i.postimg.cc/9FLqJd5t/cmrtc.png'; // Temporary CMR logo - REPLACE with your upload
+                console.log("📧 Sending registration confirmation email...");
+                console.log("Email details:", { name, studentId, email, event: eventData.name });
                 
-                const collegeName = 'CMR TECHNICAL CAMPUS';
-                const collegeTagline = 'EXPLORE TO INVENT';
-                
-                console.log("📧 Sending email with logo URL:", collegeLogoUrl);
-                
-                // Send via EmailJS
-                await emailjs.send("service_4noajtf", "template_eh5mdow", {
+                // Send via EmailJS with CMRTC service
+                const emailParams = {
+                    to_email: email,  // Recipient email
                     name: name,
                     id: studentId,
                     email: email,
-                    qr_code: data.qr_code_image,
-                    college_logo: collegeLogoUrl,
-                    college_name: collegeName,
-                    college_tagline: collegeTagline,
                     event_name: eventData.name || 'Event',
                     event_venue: eventData.venue || 'TBA',
-                    event_date: new Date(eventData.start_date).toLocaleString() || 'TBA'
-                });
+                    event_date: new Date(eventData.start_date).toLocaleString() || 'TBA',
+                    qr_code: data.qr_code_image
+                };
+                
+                console.log("📤 Sending to EmailJS with parameters:", emailParams);
+                console.log("📤 Using Service: service_8xivkr9, Template: template_cmrct");
+                
+                const emailResponse = await emailjs.send("service_8xivkr9", "template_cmrct", emailParams);
+                
+                console.log("✅ EmailJS Response:", emailResponse);
                 emailSentViaEmailJS = true;
-                console.log("✅ Email sent successfully via EmailJS to:", email);
+                console.log("✅ Email sent successfully to:", email);
             } catch (emailError) {
-                console.error("❌ EmailJS failed:", emailError);
+                console.error("❌❌❌ EmailJS FAILED ❌❌❌");
+                console.error("Error object:", emailError);
+                console.error("Error status:", emailError.status);
+                console.error("Error text:", emailError.text);
                 emailSentViaEmailJS = false;
             }
             
