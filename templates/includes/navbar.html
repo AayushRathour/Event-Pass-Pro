@@ -1,0 +1,16 @@
+{% load static %}
+<nav class="navbar">
+    <a href="{% url 'index' %}" class="navbar-logo-link">
+        <img src="{% static 'images/cmrtc.png' %}" alt="CMRTC Logo" class="navbar-logo">
+    </a>
+    <div class="nav-brand">
+        <i class="fas {{ brand_icon|default:'fa-ticket-alt' }}"></i>
+        <span>{{ brand_text|default:'EventPass Pro' }}</span>
+    </div>
+    <div class="nav-links">
+        {% block nav_links %}
+        <a href="{% url 'index' %}">Home</a>
+        <a href="{% url 'events' %}">Events</a>
+        {% endblock %}
+    </div>
+</nav>

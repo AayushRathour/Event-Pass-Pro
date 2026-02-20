@@ -1,0 +1,333 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - EventPass Pro</title>
+    <link rel="icon" type="image/png" href="{% static 'images/cmrtc.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-header h1 {
+            margin: 0 0 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card.events i { color: #667eea; }
+        .stat-card.registrations i { color: #f093fb; }
+        .stat-card.present i { color: #4facfe; }
+        
+        .stat-card h3 {
+            font-size: 2.5rem;
+            margin: 0.5rem 0;
+            color: #333;
+        }
+        
+        .stat-card p {
+            color: #666;
+            margin: 0;
+        }
+        
+        .admin-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .menu-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .menu-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .menu-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        
+        .menu-card h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        
+        .menu-card p {
+            color: #666;
+            margin: 0;
+        }
+        
+        .recent-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .recent-section h2 {
+            margin-top: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .event-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .badge-ongoing {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-upcoming {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .badge-completed {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/admin_navbar.html' %}
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>
+                <i class="fas fa-tachometer-alt"></i>
+                Admin Control Panel
+            </h1>
+            <p>Welcome back, {{ user.username }}! Manage your events and registrations.</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="admin-stats">
+            <div class="stat-card events">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>{{ total_events }}</h3>
+                <p>Total Events</p>
+            </div>
+            
+            <div class="stat-card registrations">
+                <i class="fas fa-users"></i>
+                <h3>{{ total_registrations }}</h3>
+                <p>Total Registrations</p>
+            </div>
+            
+            <div class="stat-card present">
+                <i class="fas fa-user-check"></i>
+                <h3>{{ total_present }}</h3>
+                <p>Present</p>
+            </div>
+        </div>
+
+        <!-- Admin Menu -->
+        <div class="admin-menu">
+            <a href="{% url 'admin-events' %}" class="menu-card">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Manage Events</h3>
+                <p>Create, edit, and delete events</p>
+            </a>
+            
+            <a href="{% url 'admin-registrations' %}" class="menu-card">
+                <i class="fas fa-users"></i>
+                <h3>View Registrations</h3>
+                <p>See all participant registrations</p>
+            </a>
+            
+            <a href="{% url 'dashboard' %}" class="menu-card">
+                <i class="fas fa-chart-pie"></i>
+                <h3>Analytics Dashboard</h3>
+                <p>View statistics and charts</p>
+            </a>
+            
+            <a href="{% url 'admin-logs' %}" class="menu-card">
+                <i class="fas fa-history"></i>
+                <h3>Attendance Logs</h3>
+                <p>Track all scan attempts</p>
+            </a>
+            
+            <a href="{% url 'scan' %}" class="menu-card">
+                <i class="fas fa-qrcode"></i>
+                <h3>QR Scanner</h3>
+                <p>Scan participant QR codes</p>
+            </a>
+            
+            <div class="menu-card" style="cursor: default;">
+                <i class="fas fa-file-pdf"></i>
+                <h3>Download Attendance PDF</h3>
+                <p>Select event to generate report</p>
+                <div style="margin-top: 1rem;">
+                    <select id="eventSelect" class="form-select" style="width: 100%; padding: 0.5rem; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="all">All Events</option>
+                        {% for event in all_events %}
+                        <option value="{{ event.id }}">{{ event.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="downloadPDF()" style="width: 100%; margin-top: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">Download PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Events -->
+        <div class="recent-section">
+            <h2><i class="fas fa-clock"></i> Recent Events</h2>
+            {% if recent_events %}
+                {% for event in recent_events %}
+                <div class="event-item">
+                    <div>
+                        <strong>{{ event.name }}</strong><br>
+                        <small style="color: #666;">
+                            <i class="fas fa-map-marker-alt"></i> {{ event.venue }} | 
+                            <i class="fas fa-calendar"></i> {{ event.start_date|date:"M d, Y" }}
+                        </small>
+                    </div>
+                    <div>
+                        {% if event.status == 'ongoing' %}
+                            <span class="badge badge-ongoing">Ongoing</span>
+                        {% elif event.status == 'upcoming' %}
+                            <span class="badge badge-upcoming">Upcoming</span>
+                        {% else %}
+                            <span class="badge badge-completed">Completed</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #666;">No events yet. Create your first event!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-guidance">
+                <p>Under the guidance of S. RAO CHINTALPUDI (HOD CSE-AIML)</p>
+            </div>
+            <div class="footer-contributors">
+                <h4>Project Contributors:</h4>
+                <ul>
+                    <li>AMBATI SRUJANA (227R1A6603)</li>
+                    <li>PAMULA SHRUTHI (227R1A6649)</li>
+                    <li>AAKULA SUSHMITHA (237R5A6604)</li>
+                </ul>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025 EventPass Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function downloadPDF() {
+            const eventId = document.getElementById('eventSelect').value;
+            const url = eventId === 'all' 
+                ? '/attendance/download/' 
+                : `/attendance/download/?event_id=${eventId}`;
+            window.location.href = url;
+        }
+        
+        async function logout() {
+            try {
+                const response = await fetch('/api/admin/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/admin-login/';
+                }
+            } catch (error) {
+                console.error('Error logging out:', error);
+                window.location.href = '/admin-login/';
+            }
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

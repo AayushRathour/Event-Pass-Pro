@@ -1,0 +1,270 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events - Admin Panel</title>
+    <link rel="icon" type="image/png" href="{% static 'images/cmrtc.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            color: #333;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .events-table {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .btn-edit {
+            background-color: #4facfe;
+            color: white;
+        }
+        
+        .btn-delete {
+            background-color: #fa709a;
+            color: white;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .badge-ongoing {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-upcoming {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .badge-completed {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/admin_navbar.html' %}
+
+    <div class="admin-container">
+        <div class="page-header">
+            <h1><i class="fas fa-calendar-alt"></i> Manage Events</h1>
+            <a href="{% url 'admin-create-event' %}" class="btn-primary">
+                <i class="fas fa-plus"></i> Create New Event
+            </a>
+        </div>
+
+        <div class="events-table">
+            {% if events %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Venue</th>
+                        <th>Start Date</th>
+                        <th>Status</th>
+                        <th>Capacity</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td><strong>{{ event.name }}</strong></td>
+                        <td>{{ event.venue }}</td>
+                        <td>{{ event.start_date|date:"M d, Y h:i A" }}</td>
+                        <td>
+                            {% if event.status == 'ongoing' %}
+                                <span class="badge badge-ongoing">Ongoing</span>
+                            {% elif event.status == 'upcoming' %}
+                                <span class="badge badge-upcoming">Upcoming</span>
+                            {% else %}
+                                <span class="badge badge-completed">{{ event.status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ event.max_capacity }}</td>
+                        <td>{{ event.registered_count }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'admin-edit-event' event.id %}" class="btn-sm btn-edit">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <a href="{% url 'admin-delete-event' event.id %}" class="btn-sm btn-delete">
+                                    <i class="fas fa-trash"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <h3>No Events Yet</h3>
+                <p>Create your first event to get started!</p>
+                <a href="{% url 'admin-create-event' %}" class="btn-primary" style="margin-top: 1rem;">
+                    <i class="fas fa-plus"></i> Create Event
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-guidance">
+                <p>Under the guidance of S. RAO CHINTALPUDI (HOD CSE-AIML)</p>
+            </div>
+            <div class="footer-contributors">
+                <h4>Project Contributors:</h4>
+                <ul>
+                    <li>AMBATI SRUJANA (227R1A6603)</li>
+                    <li>PAMULA SHRUTHI (227R1A6649)</li>
+                    <li>AAKULA SUSHMITHA (237R5A6604)</li>
+                </ul>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025 EventPass Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        async function logout() {
+            try {
+                const response = await fetch('/api/admin/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/admin-login/';
+                }
+            } catch (error) {
+                console.error('Error logging out:', error);
+                window.location.href = '/admin-login/';
+            }
+        }
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

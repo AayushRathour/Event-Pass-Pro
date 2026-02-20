@@ -1,0 +1,18 @@
+{% load static %}
+<nav class="navbar">
+    <a href="{% url 'index' %}" class="navbar-logo-link">
+        <img src="{% static 'images/cmrtc.png' %}" alt="CMRTC Logo" class="navbar-logo">
+    </a>
+    <div class="nav-brand">
+        <i class="fas fa-shield-alt"></i>
+        <span>EventPass Pro - Admin Panel</span>
+    </div>
+    <div class="nav-links">
+        {% block admin_nav_links %}
+        <a href="{% url 'admin-panel' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{% url 'admin-events' %}"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="{% url 'index' %}"><i class="fas fa-home"></i> Home</a>
+        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        {% endblock %}
+    </div>
+</nav>

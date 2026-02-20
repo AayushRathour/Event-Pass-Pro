@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event - Admin Panel</title>
+    <link rel="icon" type="image/png" href="{% static 'images/cmrtc.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .form-card { background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 2rem; }
+        .form-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #eee; }
+        .form-header h1 { margin: 0; color: #333; display: flex; align-items: center; gap: 0.5rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #555; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; font-family: 'Poppins', sans-serif; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem; }
+        .btn { padding: 0.8rem 1.5rem; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-secondary { background: #e2e3e5; color: #383d41; }
+        .alert { padding: 1rem; border-radius: 5px; margin-bottom: 1rem; }
+        .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    {% include 'includes/admin_navbar.html' %}
+
+    <div class="admin-container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1><i class="fas fa-edit"></i> Edit Event</h1>
+            </div>
+            {% if error %}<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>{% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name"><i class="fas fa-heading"></i> Event Name *</label>
+                    <input type="text" id="name" name="name" required value="{{ event.name }}">
+                </div>
+                <div class="form-group">
+                    <label for="description"><i class="fas fa-align-left"></i> Description *</label>
+                    <textarea id="description" name="description" required>{{ event.description }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="venue"><i class="fas fa-map-marker-alt"></i> Venue *</label>
+                    <input type="text" id="venue" name="venue" required value="{{ event.venue }}">
+                </div>
+                <div class="form-group">
+                    <label for="start_date"><i class="fas fa-calendar-plus"></i> Start Date & Time *</label>
+                    <input type="datetime-local" id="start_date" name="start_date" required value="{{ event.start_date|date:'Y-m-d\TH:i' }}">
+                </div>
+                <div class="form-group">
+                    <label for="end_date"><i class="fas fa-calendar-check"></i> End Date & Time *</label>
+                    <input type="datetime-local" id="end_date" name="end_date" required value="{{ event.end_date|date:'Y-m-d\TH:i' }}">
+                </div>
+                <div class="form-group">
+                    <label for="max_capacity"><i class="fas fa-users"></i> Maximum Capacity *</label>
+                    <input type="number" id="max_capacity" name="max_capacity" required min="1" value="{{ event.max_capacity }}">
+                </div>
+                <div class="form-group">
+                    <label for="status"><i class="fas fa-flag"></i> Status *</label>
+                    <select id="status" name="status" required>
+                        <option value="upcoming" {% if event.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                        <option value="ongoing" {% if event.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                        <option value="completed" {% if event.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if event.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <a href="{% url 'admin-events' %}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-guidance">
+                <p>Under the guidance of S. RAO CHINTALPUDI (HOD CSE-AIML)</p>
+            </div>
+            <div class="footer-contributors">
+                <h4>Project Contributors:</h4>
+                <ul>
+                    <li>AMBATI SRUJANA (227R1A6603)</li>
+                    <li>PAMULA SHRUTHI (227R1A6649)</li>
+                    <li>AAKULA SUSHMITHA (237R5A6604)</li>
+                </ul>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025 EventPass Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        async function logout() { try { const response = await fetch('/api/admin/logout/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') }, credentials: 'include' }); if (response.ok) { window.location.href = '/admin-login/'; } } catch (error) { console.error('Error logging out:', error); window.location.href = '/admin-login/'; } }
+        function getCookie(name) { let cookieValue = null; if (document.cookie && document.cookie !== '') { const cookies = document.cookie.split(';'); for (let i = 0; i < cookies.length; i++) { const cookie = cookies[i].trim(); if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; } } } return cookieValue; }
+    </script>
+</body>
+</html>

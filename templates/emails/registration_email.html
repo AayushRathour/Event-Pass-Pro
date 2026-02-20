@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Registration Confirmation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f7fa; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <!-- Main Container -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    
+                    <!-- Header with College Logo -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #4A90E2 0%, #5C6BC0 100%); padding: 30px; text-align: center;">
+                            <img src="cid:college_logo" alt="College Logo" style="max-width: 200px; height: auto; margin-bottom: 15px;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">Event Registration Successful!</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="margin: 0 0 20px; color: #333; font-size: 16px; line-height: 1.6;">
+                                Dear <strong>{{ name }}</strong>,
+                            </p>
+                            
+                            <p style="margin: 0 0 25px; color: #333; font-size: 16px; line-height: 1.6;">
+                                Thank you for registering for <strong style="color: #4A90E2;">{{ event_name }}</strong>. Your registration has been confirmed!
+                            </p>
+                            
+                            <!-- Event Details Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border-radius: 8px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <h3 style="margin: 0 0 15px; color: #333; font-size: 18px;">📅 Event Details</h3>
+                                        
+                                        <table width="100%" cellpadding="5" cellspacing="0">
+                                            <tr>
+                                                <td style="color: #666; font-size: 14px; padding: 5px 0;">
+                                                    <strong>Event:</strong>
+                                                </td>
+                                                <td style="color: #333; font-size: 14px; padding: 5px 0;">
+                                                    {{ event_name }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #666; font-size: 14px; padding: 5px 0;">
+                                                    <strong>Venue:</strong>
+                                                </td>
+                                                <td style="color: #333; font-size: 14px; padding: 5px 0;">
+                                                    {{ event_venue }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #666; font-size: 14px; padding: 5px 0;">
+                                                    <strong>Date & Time:</strong>
+                                                </td>
+                                                <td style="color: #333; font-size: 14px; padding: 5px 0;">
+                                                    {{ event_date }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #666; font-size: 14px; padding: 5px 0;">
+                                                    <strong>Student ID:</strong>
+                                                </td>
+                                                <td style="color: #333; font-size: 14px; padding: 5px 0;">
+                                                    {{ student_id }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #666; font-size: 14px; padding: 5px 0;">
+                                                    <strong>Registration ID:</strong>
+                                                </td>
+                                                <td style="color: #333; font-size: 14px; padding: 5px 0; font-family: monospace;">
+                                                    {{ registration_id }}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- QR Code Section -->
+                            <div style="text-align: center; margin: 30px 0;">
+                                <h3 style="margin: 0 0 15px; color: #333; font-size: 18px;">🎫 Your Gate Pass</h3>
+                                <p style="margin: 0 0 15px; color: #666; font-size: 14px;">
+                                    Please show this QR code at the event entrance
+                                </p>
+                                <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; display: inline-block; border: 2px solid #e0e0e0;">
+                                    <img src="cid:qr_code" alt="QR Code" style="width: 250px; height: 250px; display: block;">
+                                </div>
+                            </div>
+                            
+                            <!-- Important Notice -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 5px; margin: 25px 0;">
+                                <tr>
+                                    <td style="padding: 15px;">
+                                        <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+                                            ⚠️ <strong>Important:</strong> This QR code is valid for <strong>single entry only</strong>. Once scanned at the venue, it cannot be used again.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Instructions -->
+                            <h3 style="margin: 30px 0 15px; color: #333; font-size: 18px;">📋 Instructions</h3>
+                            <ul style="color: #666; font-size: 14px; line-height: 1.8; padding-left: 20px;">
+                                <li>Save this email or take a screenshot of the QR code</li>
+                                <li>Arrive at the venue 15 minutes before the event starts</li>
+                                <li>Show your QR code at the entrance for scanning</li>
+                                <li>Bring your student ID card for verification</li>
+                                <li>Follow all event guidelines and instructions</li>
+                            </ul>
+                            
+                            <p style="margin: 25px 0 0; color: #333; font-size: 16px; line-height: 1.6;">
+                                We look forward to seeing you at the event!
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0 0 10px; color: #666; font-size: 14px;">
+                                <strong>EventPass Pro</strong> - Digital Gate Pass System
+                            </p>
+                            <p style="margin: 0 0 10px; color: #999; font-size: 12px;">
+                                This is an automated email. Please do not reply to this message.
+                            </p>
+                            <p style="margin: 0; color: #999; font-size: 12px;">
+                                © 2025 EventPass Pro. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

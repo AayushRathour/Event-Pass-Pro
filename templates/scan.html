@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner - EventPass Pro</title>
+    <link rel="icon" type="image/png" href="{% static 'images/cmrtc.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        .scanner-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #reader {
+            width: 100%;
+            border: 2px dashed #4A90E2;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .scan-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .scan-result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+        
+        .scan-result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+        
+        .scan-result h3 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .attendee-info {
+            margin-top: 1rem;
+        }
+        
+        .attendee-info p {
+            margin: 0.5rem 0;
+            font-weight: 500;
+        }
+        
+        .stats-box {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .stats-box h2 {
+            margin: 0;
+            color: #4A90E2;
+            font-size: 2rem;
+        }
+        
+        .stats-box p {
+            margin: 0.5rem 0 0 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' with brand_text='EventPass Pro' brand_icon='fa-ticket-alt' %}
+
+    <div class="hero-section" style="padding: 2rem 1rem;">
+        <h1>QR Code Scanner</h1>
+        <p>Scan participant QR codes for attendance</p>
+    </div>
+
+    <div class="scanner-container">
+        <div class="card-header">
+            <i class="fas fa-qrcode"></i>
+            <h2>Scan QR Code</h2>
+        </div>
+        
+        <div id="reader"></div>
+        
+        <div id="scanResult" class="scan-result">
+            <h3 id="resultTitle">
+                <i class="fas fa-check-circle"></i>
+                <span id="resultText"></span>
+            </h3>
+            <div id="attendeeInfo" class="attendee-info"></div>
+        </div>
+        
+        <div class="stats-box">
+            <h2 id="scanCount">0</h2>
+            <p>Successful Scans</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-guidance">
+                <p>Under the guidance of S. RAO CHINTALPUDI (HOD CSE-AIML)</p>
+            </div>
+            <div class="footer-contributors">
+                <h4>Project Contributors:</h4>
+                <ul>
+                    <li>AMBATI SRUJANA (227R1A6603)</li>
+                    <li>PAMULA SHRUTHI (227R1A6649)</li>
+                    <li>AAKULA SUSHMITHA (237R5A6604)</li>
+                </ul>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025 EventPass Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/scanner.js' %}"></script>
+</body>
+</html>

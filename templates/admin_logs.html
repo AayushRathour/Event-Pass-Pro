@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Logs - Admin Panel</title>
+    <link rel="icon" type="image/png" href="{% static 'images/cmrtc.png' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-container { max-width: 1400px; margin: 2rem auto; padding: 0 1rem; }
+        .page-header h1 { color: #333; margin: 0 0 2rem 0; display: flex; align-items: center; gap: 0.5rem; }
+        .table-container { background: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        th { padding: 1rem; text-align: left; font-weight: 600; }
+        td { padding: 1rem; border-bottom: 1px solid #eee; }
+        tbody tr:hover { background-color: #f8f9fa; }
+        .badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
+        .badge-success { background-color: #d4edda; color: #155724; }
+        .badge-error { background-color: #f8d7da; color: #721c24; }
+        .badge-invalid { background-color: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    {% include 'includes/admin_navbar.html' %}
+
+    <div class="admin-container">
+        <div class="page-header">
+            <h1><i class="fas fa-history"></i> Attendance Logs (Last 100)</h1>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Participant</th>
+                        <th>Event</th>
+                        <th>Scan Time</th>
+                        <th>Result</th>
+                        <th>IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td><strong>{{ log.registration.name }}</strong><br><small>{{ log.registration.email }}</small></td>
+                        <td>{{ log.registration.event.name }}</td>
+                        <td>{{ log.scan_time|date:"M d, Y h:i:s A" }}</td>
+                        <td>
+                            {% if log.scan_result == 'success' %}
+                                <span class="badge badge-success"><i class="fas fa-check-circle"></i> Success</span>
+                            {% elif log.scan_result == 'already_used' %}
+                                <span class="badge badge-error"><i class="fas fa-times-circle"></i> Already Used</span>
+                            {% else %}
+                                <span class="badge badge-invalid"><i class="fas fa-exclamation-circle"></i> Invalid</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log.ip_address|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align: center; padding: 3rem; color: #666;">No logs yet</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-guidance">
+                <p>Under the guidance of S. RAO CHINTALPUDI (HOD CSE-AIML)</p>
+            </div>
+            <div class="footer-contributors">
+                <h4>Project Contributors:</h4>
+                <ul>
+                    <li>AMBATI SRUJANA (227R1A6603)</li>
+                    <li>PAMULA SHRUTHI (227R1A6649)</li>
+                    <li>AAKULA SUSHMITHA (237R5A6604)</li>
+                </ul>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025 EventPass Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+        async function logout() { try { const response = await fetch('/api/admin/logout/', { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') }, credentials: 'include' }); if (response.ok) { window.location.href = '/admin-login/'; } } catch (error) { console.error('Error logging out:', error); window.location.href = '/admin-login/'; } }
+        function getCookie(name) { let cookieValue = null; if (document.cookie && document.cookie !== '') { const cookies = document.cookie.split(';'); for (let i = 0; i < cookies.length; i++) { const cookie = cookies[i].trim(); if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; } } } return cookieValue; }
+    </script>
+</body>
+</html>
