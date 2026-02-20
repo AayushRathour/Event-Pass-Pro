@@ -10,8 +10,6 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from email.mime.image import MIMEImage
 import os
-import subprocess
-import tempfile
 from datetime import datetime
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -25,12 +23,16 @@ import io
 import base64
 import json
 import uuid
-from reportlab.lib.pagesizes import A7
-from reportlab.lib.units import mm
+from reportlab.lib.pagesizes import A7, A4, letter
+from reportlab.lib.units import mm, inch
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image as RLImage, HRFlowable
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from PIL import Image
 from .models import Event, Registration, AttendanceLog
 from .serializers import (
@@ -553,7 +555,7 @@ def admin_logs_view(request):
 
 @login_required
 def generate_attendance_pdf(request):
-    """Generate attendance PDF using template with proper table data insertion"""
+    """Generate attendance PDF directly using reportlab (works in cloud environments)"""
     if not request.user.is_staff:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
     
@@ -578,200 +580,337 @@ def generate_attendance_pdf(request):
         if not registrations.exists():
             return JsonResponse({'error': 'No registrations found'}, status=404)
         
-        # Load the user's template (which has logos and formatting)
-        template_path = os.path.join(
-            settings.BASE_DIR, 
-            'events', 
-            'docx_templates', 
-            'CSE_AIML_Attendance_Template_Updated.docx'
+        # Create PDF in memory
+        buffer = io.BytesIO()
+        
+        # Create PDF with custom page template
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=40,
+            leftMargin=40,
+            topMargin=15,
+            bottomMargin=40
         )
         
-        if not os.path.exists(template_path):
-            return JsonResponse({'error': 'Template file not found'}, status=404)
+        # Container for PDF elements
+        elements = []
         
-        # Create temporary directory for file operations
-        temp_dir = tempfile.mkdtemp()
+        # Styles
+        styles = getSampleStyleSheet()
         
-        try:
-            # Load template as Document
-            doc = Document(template_path)
-            
-            # Update Event Name and Date in the document
-            current_date = datetime.now().strftime('%B %d, %Y')
-            
-            # Replace placeholders in paragraphs
-            for paragraph in doc.paragraphs:
-                # Replace {{ event_name }} placeholder
-                if '{{ event_name }}' in paragraph.text:
-                    paragraph.text = paragraph.text.replace('{{ event_name }}', event_name)
-                if '{{ date }}' in paragraph.text:
-                    paragraph.text = paragraph.text.replace('{{ date }}', current_date)
-                
-                # Also check for variations
-                # Replace "Event:" or "Event Name:" labels
-                if 'Event:' in paragraph.text and event_name not in paragraph.text:
-                    paragraph.text = paragraph.text.replace('Event:', f'Event: {event_name}')
-                elif 'Event Name:' in paragraph.text and event_name not in paragraph.text:
-                    paragraph.text = paragraph.text.replace('Event Name:', f'Event Name: {event_name}')
-                # Also handle old Ref. No: if it exists in template
-                elif 'Ref. No:' in paragraph.text:
-                    paragraph.text = paragraph.text.replace('Ref. No:', f'Event: {event_name}')
-                
-                if 'Date:' in paragraph.text and '2026' not in paragraph.text:
-                    for run in paragraph.runs:
-                        if 'Date:' in run.text:
-                            run.text = f'Date: {current_date}'
-            
-            # Find the attendance table (should have 5 columns)
-            attendance_table = None
-            for table in doc.tables:
-                if len(table.columns) == 5:
-                    # Check if it has the correct headers
-                    first_row_text = [cell.text.strip() for cell in table.rows[0].cells]
-                    if 'S.No' in first_row_text or 'Student ID' in first_row_text:
-                        attendance_table = table
-                        break
-            
-            if not attendance_table:
-                import shutil
-                shutil.rmtree(temp_dir, ignore_errors=True)
-                return JsonResponse({'error': 'Could not find attendance table in template'}, status=500)
-            
-            # Clear existing data rows (keep only header row)
-            # Remove all rows except the first one (header)
-            while len(attendance_table.rows) > 1:
-                attendance_table._element.remove(attendance_table.rows[-1]._element)
-            
-            # Add student data rows
-            for idx, reg in enumerate(registrations, start=1):
-                # Add new row
-                row = attendance_table.add_row()
-                row.cells[0].text = str(idx)
-                row.cells[1].text = reg.student_id
-                row.cells[2].text = reg.name
-                row.cells[3].text = reg.email
-                row.cells[4].text = str(reg.id)[:8].upper()
-                
-                # Format the cells
-                for cell in row.cells:
-                    for paragraph in cell.paragraphs:
-                        for run in paragraph.runs:
-                            run.font.size = Pt(10)
-            
-            # Save the modified document
-            temp_docx = os.path.join(temp_dir, 'attendance_report.docx')
-            doc.save(temp_docx)
-            
-            # Convert DOCX to PDF using LibreOffice
-            temp_pdf = os.path.join(temp_dir, 'attendance_report.pdf')
-            
-            # Find LibreOffice executable
-            import shutil as sh
-            soffice_cmd = None
-            
-            # Try to find in PATH first
-            soffice_in_path = sh.which('soffice')
-            if soffice_in_path:
-                soffice_cmd = soffice_in_path
-            else:
-                # Check common Windows installation paths
-                common_paths = [
-                    r'C:\Program Files\LibreOffice\program\soffice.exe',
-                    r'C:\Program Files (x86)\LibreOffice\program\soffice.exe',
-                ]
-                
-                # Also check in PROGRAMFILES environment variables
-                if 'PROGRAMFILES' in os.environ:
-                    common_paths.append(os.path.join(os.environ['PROGRAMFILES'], 'LibreOffice', 'program', 'soffice.exe'))
-                if 'PROGRAMFILES(X86)' in os.environ:
-                    common_paths.append(os.path.join(os.environ['PROGRAMFILES(X86)'], 'LibreOffice', 'program', 'soffice.exe'))
-                
-                for path in common_paths:
-                    if os.path.exists(path):
-                        soffice_cmd = path
-                        break
-            
-            if not soffice_cmd:
-                import shutil
-                shutil.rmtree(temp_dir, ignore_errors=True)
-                return JsonResponse({
-                    'error': 'LibreOffice not found. Please install LibreOffice from https://www.libreoffice.org/download/',
-                    'note': 'After installation, restart your computer or add LibreOffice to system PATH.'
-                }, status=500)
-            
-            # Run LibreOffice conversion
+        # Custom styles
+        estd_style = ParagraphStyle(
+            'ESTD',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.black,
+            alignment=TA_RIGHT,
+            fontName='Helvetica-Bold'
+        )
+        
+        title_style = ParagraphStyle(
+            'Title',
+            parent=styles['Normal'],
+            fontSize=18,
+            textColor=colors.HexColor('#1a237e'),
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=3,
+            spaceBefore=0,
+            leading=20
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Normal'],
+            fontSize=11,
+            textColor=colors.HexColor('#d32f2f'),
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=3,
+            leading=13
+        )
+        
+        accredited_style = ParagraphStyle(
+            'Accredited',
+            parent=styles['Normal'],
+            fontSize=9,
+            textColor=colors.HexColor('#006400'),
+            alignment=TA_CENTER,
+            fontName='Helvetica',
+            spaceAfter=2,
+            leading=11
+        )
+        
+        approved_style = ParagraphStyle(
+            'Approved',
+            parent=styles['Normal'],
+            fontSize=8,
+            textColor=colors.HexColor('#006400'),
+            alignment=TA_CENTER,
+            fontName='Helvetica',
+            spaceAfter=8,
+            leading=10
+        )
+        
+        dept_style = ParagraphStyle(
+            'Department',
+            parent=styles['Normal'],
+            fontSize=11,
+            textColor=colors.black,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=0,
+            spaceBefore=0
+        )
+        
+        event_style = ParagraphStyle(
+            'Event',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.black,
+            alignment=TA_LEFT,
+            fontName='Helvetica'
+        )
+        
+        heading_style = ParagraphStyle(
+            'Heading',
+            parent=styles['Normal'],
+            fontSize=13,
+            textColor=colors.black,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            spaceAfter=12,
+            spaceBefore=8
+        )
+        
+        # Header Section with Logo and NAAC badge
+        logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'cmrtc.png')
+        naac_logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'NAAC.jpg')
+        
+        # Create header with logos - CMR logo on left, NAAC badge on right with ESTD
+        header_left = ''
+        header_center = ''
+        header_right_content = []
+        
+        # Left: CMR Logo
+        if os.path.exists(logo_path):
             try:
-                result = subprocess.run(
-                    [
-                        soffice_cmd,
-                        '--headless',
-                        '--convert-to',
-                        'pdf',
-                        '--outdir',
-                        temp_dir,
-                        temp_docx
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=60,
-                    cwd=temp_dir
-                )
-            except FileNotFoundError:
-                import shutil
-                shutil.rmtree(temp_dir, ignore_errors=True)
-                return JsonResponse({
-                    'error': f'LibreOffice executable not accessible: {soffice_cmd}',
-                    'note': 'Please restart your computer after installing LibreOffice.'
-                }, status=500)
-            except Exception as e:
-                import shutil
-                shutil.rmtree(temp_dir, ignore_errors=True)
-                return JsonResponse({
-                    'error': f'Error running LibreOffice: {str(e)}'
-                }, status=500)
-            
-            # Check if conversion was successful
-            if not os.path.exists(temp_pdf):
-                import shutil
-                shutil.rmtree(temp_dir, ignore_errors=True)
-                return JsonResponse({
-                    'error': 'PDF conversion failed. Please ensure LibreOffice is installed.',
-                    'details': result.stderr
-                }, status=500)
-            
-            # Create filename with event name
-            safe_event_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in event_name).replace(' ', '_')
-            
-            # Return PDF as file response
-            response = FileResponse(
-                open(temp_pdf, 'rb'),
-                content_type='application/pdf',
-                as_attachment=True,
-                filename=f'Attendance_{safe_event_name}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
-            )
-            
-            # Schedule cleanup after response is sent
-            def cleanup():
-                try:
-                    import shutil
-                    shutil.rmtree(temp_dir, ignore_errors=True)
-                except:
-                    pass
-            
-            # Register cleanup callback
-            response.close = cleanup
-            
-            return response
-            
-        except subprocess.TimeoutExpired:
-            import shutil
-            shutil.rmtree(temp_dir, ignore_errors=True)
-            return JsonResponse({'error': 'PDF conversion timed out'}, status=500)
+                header_left = RLImage(logo_path, width=1*inch, height=1*inch)
+            except:
+                header_left = ''
         
-        except Exception as e:
-            import shutil
-            shutil.rmtree(temp_dir, ignore_errors=True)
-            return JsonResponse({'error': f'Error generating PDF: {str(e)}'}, status=500)
+        # Center: Title
+        header_center = Paragraph("<b>CMR TECHNICAL CAMPUS</b>", title_style)
+        
+        # Right: ESTD text on top, NAAC Badge below (if available)
+        estd_text = Paragraph("<b>ESTD: 2009</b>", estd_style)
+        
+        if os.path.exists(naac_logo_path):
+            try:
+                naac_badge = RLImage(naac_logo_path, width=0.7*inch, height=0.7*inch)
+                # Create a nested table for right side: ESTD on top, NAAC logo below
+                right_table = Table([[estd_text], [naac_badge]], colWidths=[1.3*inch], rowHeights=[0.3*inch, 0.7*inch])
+                right_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (0, 0), 'RIGHT'),
+                    ('ALIGN', (0, 1), (0, 1), 'RIGHT'),
+                    ('VALIGN', (0, 0), (0, 0), 'TOP'),
+                    ('VALIGN', (0, 1), (0, 1), 'MIDDLE'),
+                ]))
+                header_right = right_table
+            except:
+                header_right = estd_text
+        else:
+            header_right = estd_text
+        
+        # Create header table: Logo | Title | (ESTD + NAAC Badge)
+        header_table = Table(
+            [[header_left, header_center, header_right]],
+            colWidths=[1.2*inch, 5*inch, 1.3*inch]
+        )
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (0, 0), 'MIDDLE'),
+            ('VALIGN', (1, 0), (1, 0), 'MIDDLE'),
+            ('VALIGN', (2, 0), (2, 0), 'TOP'),
+        ]))
+        elements.append(header_table)
+        elements.append(Spacer(1, 3))
+        
+        # Title and accreditation info (without repeating title as it's in header)
+        elements.append(Paragraph("<b>UGC AUTONOMOUS</b>", subtitle_style))
+        elements.append(Paragraph("<b>Accredited by <font color='#d32f2f'>NBA</font> & NAAC with 'A' Grade</b>", accredited_style))
+        elements.append(Paragraph("Approved by <b>AICTE, New Delhi</b> and <b>JNTU Hyderabad</b>", approved_style))
+        
+        # Department name with horizontal lines (underlined effect)
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.black, spaceBefore=0, spaceAfter=5))
+        elements.append(Paragraph("<b>Department of CSE [Artificial Intelligence & Machine Learning]</b>", dept_style))
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.black, spaceBefore=5, spaceAfter=10))
+        
+        # Event name and date row
+        current_date = datetime.now().strftime('%B %d, %Y')
+        event_date_table = Table(
+            [[Paragraph(f"<b>Event Name:</b> {event_name}", event_style), 
+              Paragraph(f"<b>Date:</b> {current_date}", event_style)]],
+            colWidths=[4.2*inch, 3.3*inch]
+        )
+        event_date_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(event_date_table)
+        elements.append(Spacer(1, 12))
+        
+        # Attendance Report heading
+        elements.append(Paragraph("ATTENDANCE REPORT", heading_style))
+        elements.append(Spacer(1, 8))
+        
+        # Prepare table data with Status column
+        table_data = [['S.No', 'Student ID', 'Name', 'Email', 'Status']]
+        
+        # Track row indices for present and absent students
+        present_rows = []
+        absent_rows = []
+        
+        for idx, reg in enumerate(registrations, start=1):
+            # Determine status
+            if reg.has_attended:
+                status = 'PRESENT'
+                present_rows.append(idx)  # idx is the row number (1-based, +1 for header)
+            else:
+                status = 'ABSENT'
+                absent_rows.append(idx)
+            
+            table_data.append([
+                str(idx),
+                reg.student_id,
+                reg.name,
+                reg.email,
+                status
+            ])
+        
+        # Create table with professional styling - adjusted column widths
+        table = Table(table_data, colWidths=[0.5*inch, 1*inch, 2.2*inch, 2.3*inch, 1*inch])
+        
+        # Base table style
+        base_style = [
+            # Header row styling
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#5b7fbf')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+            ('TOPPADDING', (0, 0), (-1, 0), 10),
+            
+            # Data rows styling
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+            ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+            ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+            ('ALIGN', (3, 1), (3, -1), 'LEFT'),
+            ('ALIGN', (4, 1), (4, -1), 'CENTER'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('FONTNAME', (4, 1), (4, -1), 'Helvetica-Bold'),  # Bold for Status column
+            
+            # Borders
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('BOX', (0, 0), (-1, -1), 1.5, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            
+            # Padding
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 1), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+        ]
+        
+        # Add color coding for Present rows (green background)
+        for row_idx in present_rows:
+            base_style.append(('BACKGROUND', (4, row_idx), (4, row_idx), colors.HexColor('#d4edda')))
+            base_style.append(('TEXTCOLOR', (4, row_idx), (4, row_idx), colors.HexColor('#155724')))
+        
+        # Add color coding for Absent rows (red background)
+        for row_idx in absent_rows:
+            base_style.append(('BACKGROUND', (4, row_idx), (4, row_idx), colors.HexColor('#f8d7da')))
+            base_style.append(('TEXTCOLOR', (4, row_idx), (4, row_idx), colors.HexColor('#721c24')))
+        
+        # Apply the complete style
+        table.setStyle(TableStyle(base_style))
+        
+        elements.append(table)
+        elements.append(Spacer(1, 30))
+        
+        # Footer with HOD and COORDINATOR
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.black,
+            fontName='Helvetica-Bold'
+        )
+        
+        footer_table = Table(
+            [[Paragraph("HOD", footer_style), '', Paragraph("COORDINATOR", footer_style)]],
+            colWidths=[2*inch, 3.5*inch, 2*inch]
+        )
+        footer_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(footer_table)
+        elements.append(Spacer(1, 30))
+        
+        # Address footer
+        address_style = ParagraphStyle(
+            'Address',
+            parent=styles['Normal'],
+            fontSize=8,
+            textColor=colors.black,
+            alignment=TA_CENTER,
+            fontName='Helvetica'
+        )
+        
+        phone_style = ParagraphStyle(
+            'Phone',
+            parent=styles['Normal'],
+            fontSize=8,
+            textColor=colors.HexColor('#d32f2f'),
+            alignment=TA_CENTER,
+            fontName='Helvetica'
+        )
+        
+        # Add horizontal line
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.black, spaceBefore=1, spaceAfter=8))
+        
+        elements.append(Paragraph("Kandlakoya (V), Medchal Road, Hyderabad, Telangana – 501401", address_style))
+        elements.append(Paragraph("Ph.No: 9247033440/41: www.cmrtc.ac.in", phone_style))
+        
+        # Build PDF
+        doc.build(elements)
+        
+        # Get PDF data
+        buffer.seek(0)
+        
+        # Create filename with event name
+        safe_event_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in event_name).replace(' ', '_')
+        
+        # Return PDF as file response
+        response = FileResponse(
+            buffer,
+            content_type='application/pdf',
+            as_attachment=True,
+            filename=f'Attendance_{safe_event_name}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        )
+        
+        return response
     
     except Exception as e:
         return JsonResponse({'error': f'Error: {str(e)}'}, status=500)
